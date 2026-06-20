@@ -18,6 +18,7 @@
     "typescript": "^6.0.3"
   },
   "dependencies": {
+    "lucide-react": "^1.21.0",
     "next": "^16.3.0-canary.59",
     "react": "^19.2.7",
     "react-dom": "^19.2.7"
