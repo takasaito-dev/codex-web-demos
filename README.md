@@ -2,6 +2,10 @@
 
 Local workspace for website demos built with Codex.
 
+Repository: https://github.com/takasaito-dev/codex-web-demos
+
+Preview: https://takasaito-dev.github.io/codex-web-demos/
+
 ## Commands
 
 ```sh
@@ -14,4 +18,3 @@ git push
 ```
 
 Pushing to `main` publishes the latest build with GitHub Pages.
-
