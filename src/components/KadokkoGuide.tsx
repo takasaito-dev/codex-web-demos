@@ -1,10 +1,19 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { dialects } from '@/data/dialects';
 import { products } from '@/data/products';
 import { routes } from '@/data/routes';
 import { diagnoseSouvenirs, getProductsByIds } from '@/lib/diagnosis';
+import {
+  fetchKanagiWeather,
+  getRouteWeatherReason,
+  getWeatherAdvice,
+  getWeatherEmoji,
+  getWeatherLabel,
+  rankRoutesByWeather,
+  type WeatherSnapshot,
+} from '@/lib/weather';
 import type { BudgetRange, DiagnosisAnswers, Locale, Preference, Recipient, Scene } from '@/types/guide';
 
 const cards = [
@@ -76,6 +85,11 @@ function copy(locale: Locale, ja: string, en: string) {
 
 const assetBasePath = process.env.NODE_ENV === 'production' ? '/codex-web-demos' : '';
 
+type WeatherState =
+  | { status: 'loading' }
+  | { status: 'success'; weather: WeatherSnapshot }
+  | { status: 'error' };
+
 function ProductThumb({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="overflow-hidden rounded-lg border border-stone-200 bg-stone-50">
@@ -87,6 +101,7 @@ function ProductThumb({ src, alt }: { src: string; alt: string }) {
 export function KadokkoGuide() {
   const [locale, setLocale] = useState<Locale>('ja');
   const [activeCard, setActiveCard] = useState<(typeof cards)[number]['id']>('diagnosis');
+  const [weatherState, setWeatherState] = useState<WeatherState>({ status: 'loading' });
   const [answers, setAnswers] = useState<DiagnosisAnswers>({
     recipient: 'outside_prefecture',
     budget: 'around_1000',
@@ -97,6 +112,24 @@ export function KadokkoGuide() {
 
   const diagnosisResults = useMemo(() => diagnoseSouvenirs(answers), [answers]);
   const activeDialect = dialects[dialectIndex % dialects.length];
+  const weather = weatherState.status === 'success' ? weatherState.weather : undefined;
+  const weatherRankedRoutes = useMemo(() => rankRoutesByWeather(routes, weather), [weather]);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetchKanagiWeather(controller.signal)
+      .then((weather) => {
+        setWeatherState({ status: 'success', weather });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          setWeatherState({ status: 'error' });
+        }
+      });
+
+    return () => controller.abort();
+  }, []);
 
   function updateAnswer<T extends keyof DiagnosisAnswers>(key: T, value: DiagnosisAnswers[T]) {
     setAnswers((current) => ({
@@ -154,6 +187,12 @@ export function KadokkoGuide() {
             )}
           </p>
         </header>
+
+        <WeatherPanel
+          locale={locale}
+          weatherState={weatherState}
+          onOpenRoutes={() => setActiveCard('routes')}
+        />
 
         <nav className="grid grid-cols-2 gap-3" aria-label="Main functions">
           {cards.map((card) => (
@@ -309,13 +348,28 @@ export function KadokkoGuide() {
               titleEn="Kanagi walks from KADOKKO"
             />
             <div className="grid gap-4">
-              {routes.map((route) => (
-                <article key={route.id} className="rounded-lg border border-stone-200 bg-[#fffaf1] p-4">
+              {weatherRankedRoutes.map(({ route, isWeatherPick }) => {
+                const weatherReason = getRouteWeatherReason(route.id, weather, locale);
+
+                return (
+                <article
+                  key={route.id}
+                  className={`rounded-lg border p-4 ${
+                    isWeatherPick ? 'border-[#a73c2c] bg-[#fff4e6]' : 'border-stone-200 bg-[#fffaf1]'
+                  }`}
+                >
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <p className="text-sm font-bold text-[#a73c2c]">
-                        {route.duration_minutes}
-                        {copy(locale, '分', ' min')}
+                      <p className="flex flex-wrap items-center gap-2 text-sm font-bold text-[#a73c2c]">
+                        <span>
+                          {route.duration_minutes}
+                          {copy(locale, '分', ' min')}
+                        </span>
+                        {isWeatherPick && (
+                          <span className="rounded-full bg-[#a73c2c] px-2 py-1 text-xs text-white">
+                            {copy(locale, '今日の天気おすすめ', 'Weather pick')}
+                          </span>
+                        )}
                       </p>
                       <h3 className="text-2xl font-black leading-tight text-stone-950">
                         {copy(locale, route.title_ja, route.title_en)}
@@ -335,7 +389,7 @@ export function KadokkoGuide() {
                   </p>
                   <ol className="mt-4 grid gap-2">
                     {route.spots.map((spot, index) => (
-                      <li key={`${route.id}-${spot.name_ja}`} className="flex gap-3 rounded-lg bg-white p-3">
+                      <li key={`${route.id}-${index}-${spot.name_ja}`} className="flex gap-3 rounded-lg bg-white p-3">
                         <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#a73c2c] text-sm font-black text-white">
                           {index + 1}
                         </span>
@@ -354,8 +408,14 @@ export function KadokkoGuide() {
                   <p className="mt-3 rounded-lg bg-amber-100 px-3 py-2 text-sm leading-6 text-amber-950">
                     {copy(locale, route.note_ja, route.note_en)}
                   </p>
+                  {weatherReason && (
+                    <p className="mt-3 rounded-lg bg-white px-3 py-2 text-sm font-semibold leading-6 text-stone-800">
+                      {weatherReason}
+                    </p>
+                  )}
                 </article>
-              ))}
+                );
+              })}
             </div>
           </section>
         )}
@@ -404,6 +464,139 @@ export function KadokkoGuide() {
         )}
       </section>
     </main>
+  );
+}
+
+function WeatherPanel({
+  locale,
+  weatherState,
+  onOpenRoutes,
+}: {
+  locale: Locale;
+  weatherState: WeatherState;
+  onOpenRoutes: () => void;
+}) {
+  if (weatherState.status === 'loading') {
+    return (
+      <section className="rounded-lg border border-stone-200 bg-white/95 p-4 shadow-sm">
+        <p className="text-xs font-black uppercase tracking-normal text-[#a73c2c]">
+          {copy(locale, '現在の金木町天気', 'Current Kanagi weather')}
+        </p>
+        <p className="mt-2 text-lg font-black text-stone-950">
+          {copy(locale, '天気を確認中です', 'Checking current weather')}
+        </p>
+        <p className="mt-2 text-sm leading-6 text-stone-600">
+          {copy(
+            locale,
+            'Open-MeteoからAPIキーなしで取得します。表示できない場合も固定ルートは使えます。',
+            'Weather is loaded from Open-Meteo without an API key. Fixed routes still work if it fails.',
+          )}
+        </p>
+      </section>
+    );
+  }
+
+  if (weatherState.status === 'error') {
+    return (
+      <section className="rounded-lg border border-stone-200 bg-white/95 p-4 shadow-sm">
+        <p className="text-xs font-black uppercase tracking-normal text-[#a73c2c]">
+          {copy(locale, '現在の金木町天気', 'Current Kanagi weather')}
+        </p>
+        <p className="mt-2 text-lg font-black text-stone-950">
+          {copy(locale, '天気情報を取得できませんでした', 'Weather could not be loaded')}
+        </p>
+        <p className="mt-2 text-sm leading-6 text-stone-600">
+          {copy(
+            locale,
+            '通信状況によって取得できない場合があります。散策ルートは固定データで確認できます。',
+            'Network conditions can block weather loading. Route suggestions remain available as fixed data.',
+          )}
+        </p>
+      </section>
+    );
+  }
+
+  const { weather } = weatherState;
+  const icon = getWeatherEmoji(weather);
+
+  return (
+    <section className="rounded-lg border border-stone-200 bg-white/95 p-4 shadow-sm">
+      <div className="flex items-start justify-between gap-3">
+        <div>
+          <p className="text-xs font-black uppercase tracking-normal text-[#a73c2c]">
+            {copy(locale, '現在の金木町天気', 'Current Kanagi weather')}
+          </p>
+          <div className="mt-2 flex items-center gap-3">
+            <WeatherIcon icon={icon} />
+            <div>
+              <p className="text-3xl font-black leading-none text-stone-950">
+                {Math.round(weather.temperature)}
+                <span className="text-xl">°C</span>
+              </p>
+              <p className="mt-1 text-sm font-bold text-stone-600">{getWeatherLabel(weather, locale)}</p>
+            </div>
+          </div>
+        </div>
+        <button
+          type="button"
+          onClick={onOpenRoutes}
+          className="rounded-full bg-stone-950 px-3 py-2 text-sm font-bold text-white"
+        >
+          {copy(locale, '散策へ', 'Routes')}
+        </button>
+      </div>
+      <dl className="mt-4 grid grid-cols-3 gap-2 text-center text-sm">
+        <WeatherMetric
+          label={copy(locale, '体感', 'Feels')}
+          value={`${Math.round(weather.apparentTemperature)}°C`}
+        />
+        <WeatherMetric
+          label={copy(locale, '降水', 'Rain')}
+          value={`${weather.precipitation.toFixed(1)}mm`}
+        />
+        <WeatherMetric
+          label={copy(locale, '風', 'Wind')}
+          value={`${Math.round(weather.windSpeed)}km/h`}
+        />
+      </dl>
+      <p className="mt-3 rounded-lg bg-amber-100 px-3 py-2 text-sm font-semibold leading-6 text-amber-950">
+        {getWeatherAdvice(weather, locale)}
+      </p>
+      <p className="mt-2 text-xs leading-5 text-stone-500">
+        {copy(
+          locale,
+          'Open-Meteo / APIキーなし。金木町の固定座標で取得しています。',
+          'Open-Meteo / no API key. Uses fixed Kanagi coordinates.',
+        )}
+      </p>
+    </section>
+  );
+}
+
+function WeatherIcon({ icon }: { icon: ReturnType<typeof getWeatherEmoji> }) {
+  const symbol = {
+    sun: 'SUN',
+    cloud: 'CLD',
+    rain: 'RAIN',
+    snow: 'SNOW',
+    hot: 'HOT',
+    cold: 'COLD',
+    wind: 'WIND',
+  }[icon];
+
+  return (
+    <span className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-[#f7c76f] text-xs font-black text-stone-950">
+      {symbol}
+    </span>
+  );
+}
+
+function WeatherMetric({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg bg-stone-50 px-2 py-3">
+      <dt className="text-xs font-bold text-stone-500">{label}</dt>
+      <dd className="mt-1 font-black text-stone-950">{value}</dd>
+    </div>
   );
 }
 

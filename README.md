@@ -10,10 +10,13 @@ Preview: https://takasaito-dev.github.io/codex-web-demos/
 
 - おみやげ診断: static product data and rule-based scoring
 - 商品を知る: Japanese and English product cards
+- 現在の金木町天気: Open-Meteo current weather, no API key
 - 金木町を歩く: fixed route suggestions with ordinary Google Maps links
+- 天気連動ルート: current weather prioritizes walking routes
 - 津軽弁くじ: curated phrase data, no free generation
 
 No paid APIs, AI APIs, map APIs, translation APIs, databases, or API keys are used.
+Weather uses Open-Meteo's free forecast endpoint without a key.
 
 ## Data Files
 
@@ -22,6 +25,7 @@ No paid APIs, AI APIs, map APIs, translation APIs, databases, or API keys are us
 - `src/data/routes.ts`
 - `src/data/dialects.ts`
 - `src/lib/diagnosis.ts`
+- `src/lib/weather.ts`
 
 Product prices, stock, walking times, and availability are demo placeholders and should be replaced with verified KADOKKO data before real use.
 
