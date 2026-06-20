@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Madeleine demo image">
+  <rect width="640" height="480" fill="#fff7df"/>
+  <path d="M178 286c0-92 62-154 142-154s142 62 142 154c0 52-284 52-284 0Z" fill="#d89845"/>
+  <path d="M214 274c22-64 54-96 106-112M282 292c8-70 20-108 38-130M356 292c-8-70-20-108-38-130M426 274c-22-64-54-96-106-112" stroke="#a96c2c" stroke-width="14" stroke-linecap="round"/>
+  <text x="48" y="72" fill="#51342c" font-family="Arial, sans-serif" font-size="38" font-weight="700">マドレーヌ</text>
+  <text x="48" y="420" fill="#8a6d5f" font-family="Arial, sans-serif" font-size="28">demo product image</text>
+</svg>
+

@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Kanro Ume demo image">
+  <rect width="640" height="480" fill="#fff4e6"/>
+  <circle cx="312" cy="230" r="132" fill="#b74337"/>
+  <circle cx="374" cy="190" r="72" fill="#d9685a" opacity=".72"/>
+  <path d="M194 340c70 42 178 46 262 0" fill="none" stroke="#7b2f26" stroke-width="18" stroke-linecap="round"/>
+  <text x="48" y="72" fill="#51342c" font-family="Arial, sans-serif" font-size="38" font-weight="700">甘露梅</text>
+  <text x="48" y="420" fill="#8a6d5f" font-family="Arial, sans-serif" font-size="28">demo product image</text>
+</svg>
+

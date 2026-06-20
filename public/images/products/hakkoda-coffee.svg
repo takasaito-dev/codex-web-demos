@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Hakkoda Coffee demo image">
+  <rect width="640" height="480" fill="#edf5f2"/>
+  <rect x="216" y="126" width="208" height="244" rx="24" fill="#51342c"/>
+  <path d="M242 222c54-32 102-32 156 0" fill="none" stroke="#f7f2e8" stroke-width="12" stroke-linecap="round"/>
+  <path d="M260 184l38-52 34 52 28-36 50 72H230Z" fill="#f7f2e8"/>
+  <text x="48" y="72" fill="#263d36" font-family="Arial, sans-serif" font-size="38" font-weight="700">八甲田の残雪コーヒー</text>
+  <text x="48" y="420" fill="#678077" font-family="Arial, sans-serif" font-size="28">demo product image</text>
+</svg>
+

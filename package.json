@@ -4,11 +4,22 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite --host 127.0.0.1",
-    "build": "vite build --base=/codex-web-demos/",
-    "preview": "vite preview --host 127.0.0.1"
+    "dev": "next dev -H 127.0.0.1",
+    "build": "next build",
+    "start": "next start -H 127.0.0.1"
   },
   "devDependencies": {
-    "vite": "^8.0.16"
+    "@tailwindcss/postcss": "^4.3.1",
+    "@types/node": "^26.0.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "postcss": "^8.5.15",
+    "tailwindcss": "^4.3.1",
+    "typescript": "^6.0.3"
+  },
+  "dependencies": {
+    "next": "^16.3.0-canary.59",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7"
   }
 }

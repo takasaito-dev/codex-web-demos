@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Seasonal Gift Set demo image">
+  <rect width="640" height="480" fill="#fff4e6"/>
+  <rect x="156" y="154" width="328" height="204" rx="28" fill="#f7c76f"/>
+  <path d="M320 154v204M156 230h328" stroke="#a73c2c" stroke-width="18"/>
+  <path d="M276 150c-46-52-112-30-100 18 10 40 74 34 144 12M364 150c46-52 112-30 100 18-10 40-74 34-144 12" fill="none" stroke="#a73c2c" stroke-width="16" stroke-linecap="round"/>
+  <text x="48" y="72" fill="#51342c" font-family="Arial, sans-serif" font-size="38" font-weight="700">季節のおみやげセット</text>
+  <text x="48" y="420" fill="#8a6d5f" font-family="Arial, sans-serif" font-size="28">demo product image</text>
+</svg>
+

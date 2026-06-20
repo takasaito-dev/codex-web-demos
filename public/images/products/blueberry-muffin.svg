@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Blueberry Muffin demo image">
+  <rect width="640" height="480" fill="#f4f0ff"/>
+  <path d="M198 318h244l-24 68H222Z" fill="#a86a3b"/>
+  <path d="M196 306c8-88 62-146 124-146s116 58 124 146Z" fill="#d6a25c"/>
+  <circle cx="270" cy="234" r="22" fill="#334f96"/>
+  <circle cx="350" cy="214" r="18" fill="#415fb4"/>
+  <circle cx="386" cy="270" r="20" fill="#2f477f"/>
+  <text x="48" y="72" fill="#342c51" font-family="Arial, sans-serif" font-size="38" font-weight="700">ブルーベリーマフィン</text>
+  <text x="48" y="420" fill="#786b92" font-family="Arial, sans-serif" font-size="28">demo product image</text>
+</svg>
+

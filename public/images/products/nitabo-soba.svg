@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 480" role="img" aria-label="Nitaboh Soba demo image">
+  <rect width="640" height="480" fill="#f2eadc"/>
+  <rect x="118" y="126" width="404" height="226" rx="28" fill="#f7c76f"/>
+  <path d="M174 200h292M174 246h292M174 292h292" stroke="#6b4d2f" stroke-width="18" stroke-linecap="round"/>
+  <text x="48" y="72" fill="#51342c" font-family="Arial, sans-serif" font-size="38" font-weight="700">仁太坊そば</text>
+  <text x="48" y="420" fill="#8a6d5f" font-family="Arial, sans-serif" font-size="28">demo product image</text>
+</svg>
+
