@@ -56,8 +56,8 @@ const cards: {
     icon: Gift,
     title_ja: 'おみやげ診断',
     title_en: 'Souvenir finder',
-    body_ja: 'あなたにぴったりのおみやげをご提案',
-    body_en: 'Find a souvenir that fits the person and scene.',
+    body_ja: '相手に合うおみやげを提案',
+    body_en: 'Pick a fitting local gift.',
     bg: 'bg-[#c9654f]',
     iconBg: 'bg-[#fff6ea]',
   },
@@ -66,8 +66,8 @@ const cards: {
     icon: ShoppingBasket,
     title_ja: '商品を知る',
     title_en: 'Product guide',
-    body_ja: '地元のおすすめ商品を詳しくご紹介',
-    body_en: 'Explore local items with clear explanations.',
+    body_ja: '商品の特徴を見やすく紹介',
+    body_en: 'See clear product notes.',
     bg: 'bg-[#d99a35]',
     iconBg: 'bg-[#fff8e7]',
   },
@@ -76,8 +76,8 @@ const cards: {
     icon: Map,
     title_ja: '金木町を歩く',
     title_en: 'Walk Kanagi',
-    body_ja: '観光スポットやモデルコースを案内',
-    body_en: 'Choose a walking idea from KADOKKO.',
+    body_ja: '時間に合わせて散策を案内',
+    body_en: 'Find a short walk plan.',
     bg: 'bg-[#8aa875]',
     iconBg: 'bg-[#f7fbf2]',
   },
@@ -86,8 +86,8 @@ const cards: {
     icon: MessageCircleMore,
     title_ja: '津軽弁くじ',
     title_en: 'Tsugaru phrase draw',
-    body_ja: '津軽弁のくじを引いて楽しもう',
-    body_en: 'Draw a short Tsugaru phrase and enjoy it.',
+    body_ja: '津軽弁をひいて楽しもう',
+    body_en: 'Draw a Tsugaru phrase.',
     bg: 'bg-[#85b8c8]',
     iconBg: 'bg-[#f2fbfd]',
   },
@@ -566,17 +566,17 @@ function FeatureCard({
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-[170px] rounded-2xl p-4 text-left text-white shadow-[0_16px_28px_rgb(88_57_24_/_16%)] transition ${
+      className={`min-h-[158px] rounded-2xl p-3 text-left text-white shadow-[0_16px_28px_rgb(88_57_24_/_16%)] transition sm:min-h-[170px] sm:p-4 ${
         card.bg
       } ${active ? 'ring-4 ring-white' : 'hover:-translate-y-0.5'}`}
     >
-      <span className={`mx-auto grid h-20 w-20 place-items-center rounded-full ${card.iconBg} text-[#8d3d2b]`}>
-        <Icon size={42} strokeWidth={1.8} />
+      <span className={`mx-auto grid h-16 w-16 place-items-center rounded-full sm:h-20 sm:w-20 ${card.iconBg} text-[#8d3d2b]`}>
+        <Icon className="h-9 w-9 sm:h-[42px] sm:w-[42px]" strokeWidth={1.8} />
       </span>
-      <span className="mt-4 block text-center text-[1.35rem] font-black leading-tight tracking-normal [word-break:keep-all] sm:text-2xl">
+      <span className="mt-3 block text-center text-[1.18rem] font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-4 sm:text-2xl">
         {copy(locale, card.title_ja, card.title_en)}
       </span>
-      <span className="mt-2 block text-center text-sm font-bold leading-6 text-white/95">
+      <span className="mx-auto mt-2 block max-w-[9.5rem] text-center text-[0.78rem] font-bold leading-5 text-white/95 [word-break:keep-all] sm:max-w-none sm:text-sm sm:leading-6">
         {copy(locale, card.body_ja, card.body_en)}
       </span>
     </button>
