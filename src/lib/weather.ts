@@ -6,21 +6,8 @@ const KANAGI_LONGITUDE = 140.456624;
 const openMeteoUrl = new URL('https://api.open-meteo.com/v1/forecast');
 openMeteoUrl.searchParams.set('latitude', String(KANAGI_LATITUDE));
 openMeteoUrl.searchParams.set('longitude', String(KANAGI_LONGITUDE));
-openMeteoUrl.searchParams.set(
-  'current',
-  [
-    'temperature_2m',
-    'apparent_temperature',
-    'precipitation',
-    'rain',
-    'snowfall',
-    'weather_code',
-    'cloud_cover',
-    'wind_speed_10m',
-  ].join(','),
-);
+openMeteoUrl.searchParams.set('current_weather', 'true');
 openMeteoUrl.searchParams.set('timezone', 'Asia/Tokyo');
-openMeteoUrl.searchParams.set('forecast_days', '1');
 
 export const KANAGI_WEATHER_API_URL = openMeteoUrl.toString();
 
@@ -39,16 +26,11 @@ export type WeatherSnapshot = {
 };
 
 type OpenMeteoResponse = {
-  current?: {
+  current_weather?: {
     time?: string;
-    temperature_2m?: number;
-    apparent_temperature?: number;
-    precipitation?: number;
-    rain?: number;
-    snowfall?: number;
-    weather_code?: number;
-    cloud_cover?: number;
-    wind_speed_10m?: number;
+    temperature?: number;
+    windspeed?: number;
+    weathercode?: number;
   };
 };
 
@@ -63,22 +45,29 @@ export async function fetchKanagiWeather(signal?: AbortSignal): Promise<WeatherS
   }
 
   const data = (await response.json()) as OpenMeteoResponse;
-  const current = data.current;
+  const current = data.current_weather;
 
-  if (!current || current.temperature_2m === undefined || current.weather_code === undefined) {
+  if (!current || current.temperature === undefined || current.weathercode === undefined) {
     throw new Error('Weather response did not include current conditions.');
   }
 
+  const cloudCoverByCode: Record<number, number> = {
+    0: 0,
+    1: 25,
+    2: 60,
+    3: 100,
+  };
+
   return {
     time: current.time ?? '',
-    temperature: current.temperature_2m,
-    apparentTemperature: current.apparent_temperature ?? current.temperature_2m,
-    precipitation: current.precipitation ?? 0,
-    rain: current.rain ?? 0,
-    snowfall: current.snowfall ?? 0,
-    weatherCode: current.weather_code,
-    cloudCover: current.cloud_cover ?? 0,
-    windSpeed: current.wind_speed_10m ?? 0,
+    temperature: current.temperature,
+    apparentTemperature: current.temperature,
+    precipitation: 0,
+    rain: 0,
+    snowfall: 0,
+    weatherCode: current.weathercode,
+    cloudCover: cloudCoverByCode[current.weathercode] ?? 0,
+    windSpeed: current.windspeed ?? 0,
   };
 }
 
@@ -267,4 +256,3 @@ export function getRouteWeatherReason(routeId: string, weather: WeatherSnapshot 
 
   return '';
 }
-

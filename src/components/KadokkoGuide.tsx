@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   ChevronRight,
   Cloud,
@@ -13,6 +13,7 @@ import {
   MapPin,
   Menu,
   MessageCircleMore,
+  RefreshCw,
   Route,
   ShoppingBasket,
   Snowflake,
@@ -129,8 +130,28 @@ function copy(locale: Locale, ja: string, en: string) {
   return locale === 'ja' ? ja : en;
 }
 
+function formatWeatherTime(time: string, locale: Locale) {
+  if (!time) return copy(locale, '現在値', 'Current');
+
+  const normalized = time.includes('+') || time.endsWith('Z') ? time : `${time}${time.length === 16 ? ':00' : ''}+09:00`;
+  const date = new Date(normalized);
+
+  if (Number.isNaN(date.getTime())) return copy(locale, '現在値', 'Current');
+
+  const formatted = new Intl.DateTimeFormat(locale === 'ja' ? 'ja-JP' : 'en-US', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: false,
+    timeZone: 'Asia/Tokyo',
+  }).format(date);
+
+  return locale === 'ja' ? `${formatted}更新` : `Updated ${formatted}`;
+}
+
 const assetBasePath = process.env.NODE_ENV === 'production' ? '/codex-web-demos' : '';
 const streetImagePath = `${assetBasePath}/images/places/kanagi-street.jpg`;
+const weatherRequestTimeoutMs = 30000;
+const weatherRefreshIntervalMs = 10 * 60 * 1000;
 
 type WeatherState =
   | { status: 'loading' }
@@ -149,6 +170,8 @@ export function KadokkoGuide() {
   const [locale, setLocale] = useState<Locale>('ja');
   const [activeCard, setActiveCard] = useState<CardId>('diagnosis');
   const [weatherState, setWeatherState] = useState<WeatherState>({ status: 'loading' });
+  const [isWeatherRefreshing, setIsWeatherRefreshing] = useState(false);
+  const weatherRequestIdRef = useRef(0);
   const [answers, setAnswers] = useState<DiagnosisAnswers>({
     recipient: 'outside_prefecture',
     budget: 'around_1000',
@@ -164,21 +187,42 @@ export function KadokkoGuide() {
   const primaryRoute = weatherRankedRoutes[0]?.route;
   const primaryRouteReason = primaryRoute ? getRouteWeatherReason(primaryRoute.id, weather, locale) : '';
 
-  useEffect(() => {
-    const controller = new AbortController();
+  const refreshWeather = useCallback((mode: 'initial' | 'auto' | 'manual' = 'manual') => {
+    const requestId = weatherRequestIdRef.current + 1;
+    weatherRequestIdRef.current = requestId;
+    let timeoutId = 0;
+    const timeout = new Promise<never>((_, reject) => {
+      timeoutId = window.setTimeout(() => reject(new Error('Weather request timed out.')), weatherRequestTimeoutMs);
+    });
 
-    fetchKanagiWeather(controller.signal)
+    setWeatherState((current) => (mode === 'initial' || current.status !== 'success' ? { status: 'loading' } : current));
+    setIsWeatherRefreshing(mode !== 'initial');
+
+    Promise.race([fetchKanagiWeather(), timeout])
       .then((weather) => {
+        if (weatherRequestIdRef.current !== requestId) return;
         setWeatherState({ status: 'success', weather });
       })
       .catch(() => {
-        if (!controller.signal.aborted) {
-          setWeatherState({ status: 'error' });
-        }
+        if (weatherRequestIdRef.current !== requestId) return;
+        setWeatherState((current) => (current.status === 'success' ? current : { status: 'error' }));
+      })
+      .finally(() => {
+        window.clearTimeout(timeoutId);
+        if (weatherRequestIdRef.current !== requestId) return;
+        setIsWeatherRefreshing(false);
       });
-
-    return () => controller.abort();
   }, []);
+
+  useEffect(() => {
+    refreshWeather('initial');
+    const intervalId = window.setInterval(() => refreshWeather('auto'), weatherRefreshIntervalMs);
+
+    return () => {
+      window.clearInterval(intervalId);
+      weatherRequestIdRef.current += 1;
+    };
+  }, [refreshWeather]);
 
   function updateAnswer<T extends keyof DiagnosisAnswers>(key: T, value: DiagnosisAnswers[T]) {
     setAnswers((current) => ({
@@ -226,16 +270,16 @@ export function KadokkoGuide() {
                 </button>
               </div>
             </div>
-            <div className="relative h-64 overflow-hidden">
+            <div className="relative h-48 overflow-hidden sm:h-64">
               <img
                 src={streetImagePath}
                 alt={copy(locale, '金木町の街並みイメージ', 'Kanagi town street image')}
                 className="h-full w-full object-cover"
               />
               <div className="absolute inset-0 bg-gradient-to-b from-[#fffaf0]/85 via-[#fffaf0]/28 to-[#fffaf0]/82" />
-              <div className="absolute inset-x-5 top-8 text-center">
+              <div className="absolute inset-x-5 top-6 text-center sm:top-8">
                 <p className="text-xs font-black uppercase tracking-[0.18em] text-[#b54b36]">KADOKKO AI案内所</p>
-                <h1 className="mx-auto mt-3 max-w-[18rem] text-xl font-black leading-[1.6] tracking-normal text-[#24190f] sm:text-2xl">
+                <h1 className="mx-auto mt-2 max-w-[18rem] text-[1.18rem] font-black leading-[1.55] tracking-normal text-[#24190f] sm:mt-3 sm:text-2xl sm:leading-[1.6]">
                   {copy(
                     locale,
                     '金木町の「いいもの」や「たのしい」をAIがやさしくご案内します。',
@@ -246,7 +290,7 @@ export function KadokkoGuide() {
             </div>
           </header>
 
-          <section className="-mt-8 grid grid-cols-2 gap-3 px-3 sm:gap-4 sm:px-4">
+          <section className="grid grid-cols-2 gap-3 px-3 pt-4 sm:gap-4 sm:px-4 sm:pt-5">
             {cards.map((card) => (
               <FeatureCard
                 key={card.id}
@@ -262,6 +306,8 @@ export function KadokkoGuide() {
             <WeatherPanel
               locale={locale}
               weatherState={weatherState}
+              isRefreshing={isWeatherRefreshing}
+              onRefresh={() => refreshWeather('manual')}
               onOpenRoutes={() => setActiveCard('routes')}
             />
             <RoutePreviewCard
@@ -566,17 +612,17 @@ function FeatureCard({
     <button
       type="button"
       onClick={onClick}
-      className={`min-h-[158px] rounded-2xl p-3 text-left text-white shadow-[0_16px_28px_rgb(88_57_24_/_16%)] transition sm:min-h-[170px] sm:p-4 ${
+      className={`min-h-[148px] rounded-2xl p-3 text-left text-white shadow-[0_16px_28px_rgb(88_57_24_/_16%)] transition sm:min-h-[170px] sm:p-4 ${
         card.bg
       } ${active ? 'ring-4 ring-white' : 'hover:-translate-y-0.5'}`}
     >
-      <span className={`mx-auto grid h-16 w-16 place-items-center rounded-full sm:h-20 sm:w-20 ${card.iconBg} text-[#8d3d2b]`}>
-        <Icon className="h-9 w-9 sm:h-[42px] sm:w-[42px]" strokeWidth={1.8} />
+      <span className={`mx-auto grid h-14 w-14 place-items-center rounded-full sm:h-20 sm:w-20 ${card.iconBg} text-[#8d3d2b]`}>
+        <Icon className="h-8 w-8 sm:h-[42px] sm:w-[42px]" strokeWidth={1.8} />
       </span>
-      <span className="mt-3 block text-center text-[1.18rem] font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-4 sm:text-2xl">
+      <span className="mt-3 block text-center text-[1.12rem] font-black leading-tight tracking-normal [word-break:keep-all] sm:mt-4 sm:text-2xl">
         {copy(locale, card.title_ja, card.title_en)}
       </span>
-      <span className="mx-auto mt-2 block max-w-[9.5rem] text-center text-[0.78rem] font-bold leading-5 text-white/95 [word-break:keep-all] sm:max-w-none sm:text-sm sm:leading-6">
+      <span className="mx-auto mt-2 block max-w-[9.5rem] text-center text-[0.75rem] font-bold leading-5 text-white/95 [word-break:keep-all] sm:max-w-none sm:text-sm sm:leading-6">
         {copy(locale, card.body_ja, card.body_en)}
       </span>
     </button>
@@ -586,10 +632,14 @@ function FeatureCard({
 function WeatherPanel({
   locale,
   weatherState,
+  isRefreshing,
+  onRefresh,
   onOpenRoutes,
 }: {
   locale: Locale;
   weatherState: WeatherState;
+  isRefreshing: boolean;
+  onRefresh: () => void;
   onOpenRoutes: () => void;
 }) {
   if (weatherState.status === 'loading') {
@@ -609,6 +659,14 @@ function WeatherPanel({
             <p className="mt-1 text-sm font-bold text-[#7a6a56]">Open-Meteo</p>
           </div>
         </div>
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="mt-4 flex w-full items-center justify-center gap-2 rounded-xl bg-[#fff4e2] px-4 py-3 text-sm font-black text-[#5d331f]"
+        >
+          <RefreshCw size={16} />
+          {copy(locale, '再取得する', 'Try again')}
+        </button>
       </section>
     );
   }
@@ -626,12 +684,28 @@ function WeatherPanel({
             'Weather could not be loaded. Fixed routes still work.',
           )}
         </p>
+        <button
+          type="button"
+          onClick={onRefresh}
+          className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#bd4a34] px-4 py-3 text-sm font-black text-white"
+        >
+          <RefreshCw size={16} />
+          {copy(locale, '天気を再取得', 'Reload weather')}
+        </button>
       </section>
     );
   }
 
   const { weather } = weatherState;
   const icon = getWeatherEmoji(weather);
+  const precipitationValue =
+    weather.precipitation > 0
+      ? `${weather.precipitation.toFixed(1)}mm`
+      : icon === 'rain'
+        ? copy(locale, '雨', 'Rain')
+        : icon === 'snow'
+          ? copy(locale, '雪', 'Snow')
+          : '0.0mm';
 
   return (
     <section className="rounded-2xl border border-[#e4d7bf] bg-white/95 p-4 shadow-sm">
@@ -640,6 +714,7 @@ function WeatherPanel({
           <p className="text-center text-lg font-black text-[#24190f]">
             {copy(locale, '現在の金木町天気', 'Current Kanagi weather')}
           </p>
+          <p className="mt-1 text-center text-xs font-black text-[#8a7660]">{formatWeatherTime(weather.time, locale)}</p>
           <div className="mt-4 flex items-center justify-center gap-4">
             <WeatherIcon icon={icon} />
             <div className="text-center">
@@ -653,11 +728,12 @@ function WeatherPanel({
         </div>
         <button
           type="button"
-          onClick={onOpenRoutes}
-          className="mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#bd4a34] text-white"
-          aria-label={copy(locale, '散策ルートを見る', 'Show routes')}
+          onClick={onRefresh}
+          className="mt-1 grid h-11 w-11 shrink-0 place-items-center rounded-full bg-[#fff4e2] text-[#bd4a34]"
+          aria-label={copy(locale, '天気を更新', 'Refresh weather')}
+          disabled={isRefreshing}
         >
-          <Route size={21} />
+          <RefreshCw className={isRefreshing ? 'animate-spin' : ''} size={19} />
         </button>
       </div>
       <dl className="mt-5 grid grid-cols-3 divide-x divide-[#eadfc9] border-t border-[#eadfc9] pt-4 text-center text-sm">
@@ -669,7 +745,7 @@ function WeatherPanel({
         <WeatherMetric
           icon={Umbrella}
           label={copy(locale, '降水', 'Rain')}
-          value={`${weather.precipitation.toFixed(1)}mm`}
+          value={precipitationValue}
         />
         <WeatherMetric
           icon={Wind}
@@ -680,6 +756,14 @@ function WeatherPanel({
       <p className="mt-4 rounded-xl bg-[#fff4e2] px-3 py-3 text-sm font-bold leading-6 text-[#5d331f]">
         {getWeatherAdvice(weather, locale)}
       </p>
+      <button
+        type="button"
+        onClick={onOpenRoutes}
+        className="mt-3 flex w-full items-center justify-center gap-2 rounded-xl bg-[#bd4a34] px-4 py-3 text-sm font-black text-white"
+      >
+        <Route size={18} />
+        {copy(locale, '天気に合う散策を見る', 'Show weather-aware routes')}
+      </button>
     </section>
   );
 }
@@ -853,7 +937,7 @@ function MobileDock({
   return (
     <nav
       aria-label={copy(locale, '主要機能', 'Primary functions')}
-      className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-md border-t border-[#e4d7bf] bg-[#fffaf0]/96 px-4 pb-4 pt-3 shadow-[0_-12px_30px_rgb(92_66_40_/_12%)] backdrop-blur"
+      className="fixed inset-x-0 bottom-0 z-20 mx-auto w-full max-w-md border-t border-[#e4d7bf] bg-[#fffaf0]/96 px-4 pb-[calc(0.5rem+env(safe-area-inset-bottom))] pt-2 shadow-[0_-12px_30px_rgb(92_66_40_/_12%)] backdrop-blur"
     >
       <div className="grid grid-cols-4 gap-1">
         {items.map((item) => {
@@ -865,11 +949,11 @@ function MobileDock({
               key={item.id}
               type="button"
               onClick={() => onPick(item.id)}
-              className={`flex min-h-14 flex-col items-center justify-center gap-1 rounded-xl text-xs font-black ${
+              className={`flex min-h-12 flex-col items-center justify-center gap-0.5 rounded-xl text-xs font-black ${
                 active ? 'text-[#bd4a34]' : 'text-[#5f5140]'
               }`}
             >
-              <Icon size={24} strokeWidth={active ? 2.6 : 2} />
+              <Icon size={22} strokeWidth={active ? 2.6 : 2} />
               <span>{copy(locale, item.ja, item.en)}</span>
             </button>
           );
