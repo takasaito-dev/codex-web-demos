@@ -1,10 +1,16 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f7efe0;
-  --foreground: #24190f;
-  --accent: #bd4a34;
-  --ink-muted: #6f604d;
+  --background: #f7f3ef;
+  --foreground: #2b2b2b;
+  --accent: #bf0000;
+  --accent-hover: #a40000;
+  --accent-soft: #fff2f2;
+  --accent-quiet: #fdf7f5;
+  --border-soft: #ded6d1;
+  --surface: #ffffff;
+  --surface-muted: #f8f5f2;
+  --ink-muted: #666666;
 }
 
 * {
@@ -20,9 +26,9 @@ body {
   margin: 0;
   color: var(--foreground);
   background:
-    radial-gradient(circle at top left, rgb(255 247 222 / 95%), transparent 32rem),
-    radial-gradient(circle at bottom right, rgb(180 207 201 / 28%), transparent 34rem),
-    linear-gradient(180deg, #f4ead8 0%, #fff8eb 48%, #efe4d0 100%);
+    radial-gradient(circle at top left, rgb(255 247 247 / 94%), transparent 30rem),
+    radial-gradient(circle at bottom right, rgb(245 230 220 / 64%), transparent 34rem),
+    linear-gradient(180deg, #f7f3ef 0%, #ffffff 46%, #f4eee9 100%);
   font-family:
     var(--font-geist-sans), ui-sans-serif, system-ui, -apple-system,
     BlinkMacSystemFont, "Segoe UI", sans-serif;
@@ -34,9 +40,164 @@ a {
 }
 
 .kanagi-texture {
-  background-image:
-    radial-gradient(circle at 12% 16%, rgb(255 255 255 / 55%) 0 0.12rem, transparent 0.13rem),
-    linear-gradient(90deg, rgb(92 66 40 / 5%) 1px, transparent 1px),
-    linear-gradient(180deg, rgb(92 66 40 / 5%) 1px, transparent 1px);
-  background-size: 18px 18px, 26px 26px, 26px 26px;
+  background-image: none;
+}
+
+.kadokko-app {
+  background:
+    radial-gradient(circle at 18% 0%, rgb(255 246 246 / 90%), transparent 28rem),
+    radial-gradient(circle at 100% 24%, rgb(247 232 223 / 56%), transparent 24rem),
+    linear-gradient(180deg, #f7f3ef 0%, #ffffff 52%, #f6f1ed 100%);
+}
+
+.kadokko-app a {
+  text-decoration: none;
+}
+
+.kadokko-app input,
+.kadokko-app select,
+.kadokko-app textarea,
+.kadokko-app button,
+.kadokko-app a {
+  transition:
+    background-color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    color 180ms ease,
+    transform 180ms ease;
+}
+
+.kadokko-app input,
+.kadokko-app select,
+.kadokko-app textarea {
+  outline: none;
+}
+
+.kadokko-app input:focus-visible,
+.kadokko-app select:focus-visible,
+.kadokko-app textarea:focus-visible,
+.kadokko-app button:focus-visible,
+.kadokko-app a:focus-visible {
+  outline: 3px solid rgb(0 0 0 / 12%);
+  outline-offset: 3px;
+}
+
+@media (min-width: 1024px) {
+  .kadokko-sidebar {
+    position: sticky;
+    top: 1rem;
+    align-self: start;
+  }
+}
+
+.kadokko-app [class*="border-[#e4d7bf]"],
+.kadokko-app [class*="border-[#eadfc9]"],
+.kadokko-app [class*="border-[#dfd2ba]"],
+.kadokko-app [class*="border-[#e5d8bf]"] {
+  border-color: var(--border-soft) !important;
+}
+
+.kadokko-app [class*="bg-[#fffaf0]"],
+.kadokko-app [class*="bg-[#fbf6e9]"],
+.kadokko-app [class*="bg-[#fff4e2]"],
+.kadokko-app [class*="bg-[#f7ead0]"],
+.kadokko-app [class*="bg-[#fff4d8]"] {
+  background-color: var(--surface-muted) !important;
+}
+
+.kadokko-app [class*="bg-[#1d1d1f]"],
+.kadokko-app [class*="bg-[#2f251a]"],
+.kadokko-app [class*="bg-[#352719]"] {
+  background-color: var(--surface) !important;
+}
+
+.kadokko-app [class*="bg-[#bd4a34]"],
+.kadokko-app [class*="bg-[#b54b36]"],
+.kadokko-app [class*="bg-[#a24f3d]"] {
+  background-color: var(--accent) !important;
+}
+
+.kadokko-app [class*="text-[#1d1d1f]"],
+.kadokko-app [class*="text-[#24190f]"],
+.kadokko-app [class*="text-[#2f251a]"],
+.kadokko-app [class*="text-[#3a2b1c]"] {
+  color: var(--foreground) !important;
+}
+
+.kadokko-app [class*="text-[#7a6a56]"],
+.kadokko-app [class*="text-[#594c3b]"],
+.kadokko-app [class*="text-[#6f604d]"],
+.kadokko-app [class*="text-[#8a7660]"],
+.kadokko-app [class*="text-[#6d5b43]"],
+.kadokko-app [class*="text-[#6d4c2c]"],
+.kadokko-app [class*="text-[#5d331f]"],
+.kadokko-app [class*="text-[#5f5140]"],
+.kadokko-app [class*="text-[#8c5138]"] {
+  color: var(--ink-muted) !important;
+}
+
+.kadokko-app [class*="text-[#bd4a34]"],
+.kadokko-app [class*="text-[#b54b36]"],
+.kadokko-app [class*="text-[#a24f3d]"] {
+  color: var(--accent) !important;
+}
+
+.kadokko-app [class*="rounded-[34px]"],
+.kadokko-app [class*="rounded-[30px]"],
+.kadokko-app [class*="rounded-[24px]"],
+.kadokko-app .rounded-2xl {
+  border-radius: 12px !important;
+}
+
+.kadokko-app [class*="rounded-[22px]"],
+.kadokko-app [class*="rounded-[20px]"],
+.kadokko-app [class*="rounded-[18px]"],
+.kadokko-app [class*="rounded-[16px]"],
+.kadokko-app [class*="rounded-[14px]"],
+.kadokko-app .rounded-xl {
+  border-radius: 8px !important;
+}
+
+.guide-panel {
+  display: none;
+  scroll-margin-top: 1rem;
+}
+
+.guide-panel[data-active="true"] {
+  display: block;
+}
+
+[data-mobile-dock-card] {
+  background: transparent !important;
+  color: var(--ink-muted) !important;
+}
+
+[data-guide-card] {
+  border-color: var(--border-soft) !important;
+  box-shadow: 0 10px 30px rgb(0 0 0 / 5%) !important;
+}
+
+[data-mobile-dock-card][data-current="true"] {
+  background: var(--accent-soft) !important;
+  color: var(--accent) !important;
+}
+
+[data-guide-card][data-current="true"] {
+  border-color: rgb(29 29 31 / 20%) !important;
+  box-shadow: 0 10px 28px rgb(191 0 0 / 10%) !important;
+}
+
+.booking-confirmation[data-status="pending"] {
+  background: var(--surface-muted);
+  color: var(--ink-muted);
+}
+
+.booking-confirmation[data-status="submitted"] {
+  background: var(--accent-soft);
+  color: var(--foreground);
+}
+
+.booking-confirmation[data-status="pending"] [data-booking-submitted-text],
+.booking-confirmation[data-status="submitted"] [data-booking-pending-text] {
+  display: none;
 }
