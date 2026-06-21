@@ -37,6 +37,7 @@ export type Product = {
 };
 
 export type RouteSpot = {
+  spot_id?: string;
   name_ja: string;
   name_en: string;
   walk_minutes: number | null;
@@ -47,6 +48,9 @@ export type GuideRoute = {
   title_ja: string;
   title_en: string;
   duration_minutes: number;
+  duration_label_ja?: string;
+  duration_label_en?: string;
+  placement?: 'standard' | 'final';
   situation: string[];
   description_ja: string;
   description_en: string;
@@ -83,4 +87,3 @@ export type DiagnosisResult = {
   reason_ja: string;
   reason_en: string;
 };
-

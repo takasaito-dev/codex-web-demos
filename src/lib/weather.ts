@@ -213,6 +213,7 @@ export function rankRoutesByWeather(routes: GuideRoute[], weather?: WeatherSnaps
       if (['clear', 'cloudy'].includes(mood)) {
         if (route.id === 'heritage-60') weatherScore += 20;
         if (route.id === 'deep-90') weatherScore += 14;
+        if (route.id === 'park-120') weatherScore += 12;
         if (route.id === 'classic-30') weatherScore += 8;
       }
 
@@ -222,7 +223,12 @@ export function rankRoutesByWeather(routes: GuideRoute[], weather?: WeatherSnaps
         isWeatherPick: false,
       };
     })
-    .sort((a, b) => b.weatherScore - a.weatherScore || a.route.duration_minutes - b.route.duration_minutes)
+    .sort((a, b) => {
+      if (a.route.placement === 'final' && b.route.placement !== 'final') return 1;
+      if (a.route.placement !== 'final' && b.route.placement === 'final') return -1;
+
+      return b.weatherScore - a.weatherScore || a.route.duration_minutes - b.route.duration_minutes;
+    })
     .map((item, index) => ({
       ...item,
       isWeatherPick: index === 0 && item.weatherScore > 0,
@@ -252,6 +258,12 @@ export function getRouteWeatherReason(routeId: string, weather: WeatherSnapshot 
     return locale === 'ja'
       ? '歩きやすい天気なので、斜陽館周辺まで見やすいルートを優先しています。'
       : 'The weather is suitable for walking, so a Shayokan-area route is prioritized.';
+  }
+
+  if (routeId === 'park-120' && ['clear', 'cloudy'].includes(mood)) {
+    return locale === 'ja'
+      ? '天気が安定している日は、芦野公園方面まで足を伸ばす候補にもできます。'
+      : 'Stable weather also makes the Ashino Park extension a reasonable option.';
   }
 
   return '';
